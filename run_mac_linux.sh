@@ -13,13 +13,13 @@ if [ ! -d "venv" ]; then
     python3 -m venv venv
 fi
 
-# Activate virtual environment
-source venv/bin/activate
+# Activate virtual environment (optional but good practice)
+source venv/bin/activate 2>/dev/null
 
-# Install requirements
+# Install requirements using the venv's python directly
 echo "A instalar dependências (isto pode demorar um pouco na primeira vez)..."
-python3 -m pip install -r requirements.txt --quiet
+./venv/bin/python3 -m pip install -r requirements.txt --quiet
 
-# Run the app
+# Run the app using the venv's streamlit module directly
 echo "A iniciar o simulador..."
-python3 -m streamlit run app.py
+./venv/bin/python3 -m streamlit run app.py
