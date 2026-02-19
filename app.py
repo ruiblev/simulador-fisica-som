@@ -1,0 +1,381 @@
+
+import streamlit as st
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+from scipy import signal
+import time
+
+# --- Configuration ---
+st.set_page_config(
+    page_title="Simulador: Velocidade do Som (AL 2.2)",
+    page_icon="🔊",
+    layout="wide"
+)
+
+# Custom CSS for aesthetics
+st.markdown("""
+<style>
+    .reportview-container {
+        background: #f0f2f6;
+    }
+    .main .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+    h1 {
+        color: #0e1117;
+    }
+    h2 {
+        color: #262730;
+        border-bottom: 1px solid #d6d6d8;
+        padding-bottom: 0.5rem;
+    }
+    .stButton>button {
+        color: white;
+        background-color: #ff4b4b;
+        border-radius: 5px;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# --- Sidebar: Configuration ---
+with st.sidebar:
+    st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Oscilloscope_sine_square.jpg/640px-Oscilloscope_sine_square.jpg", use_column_width=True, caption="Osciloscópio")
+    st.header("Configuração Ambiental")
+    temperature = st.number_input(r"Temperatura do Ar ($^\circ$C)", min_value=0.0, max_value=40.0, value=20.0, step=0.1)
+    
+    # Theoretical Calculation
+    # v = 331.29 + 0.61 * T
+    v_theo = 331.29 + 0.61 * temperature
+    st.metric(label="Velocidade Teórica do Som", value=f"{v_theo:.2f} m/s")
+    
+    st.markdown("---")
+    st.header("Navegação")
+    procedure = st.radio("Escolha o Procedimento:", 
+        ["1. Método do Impulso/Eco", "2. Método do Desfasamento", "3. Análise de Dados"])
+
+    st.markdown("---")
+    st.markdown("**Sobre:** Simulador da A.L. 2.2 - Velocidade de propagação do som.")
+
+# --- Helper Functions ---
+def generate_pulse(t, t0, width=0.002):
+    return np.exp(-((t - t0)**2) / (2 * width**2))
+
+def plot_oscilloscope(time, ch1, ch2, t_range, y_range=(-1, 1), trigger_level=0.1):
+    fig, ax = plt.subplots(figsize=(10, 5))
+    ax.set_facecolor("#1e1e1e")  # Oscilloscope screen color
+    ax.grid(color="#444", linestyle='--', linewidth=0.5)
+    
+    # Plot signals
+    ax.plot(time * 1000, ch1, color="#00ff00", linewidth=1.5, label="CH1 (Fonte/Gerador)")
+    ax.plot(time * 1000, ch2, color="#ffff00", linewidth=1.5, label="CH2 (Recetor/Microfone)")
+    
+    # Setup axis
+    ax.set_xlabel("Tempo (ms)", fontsize=12)
+    ax.set_ylabel("Tensão (V)", fontsize=12)
+    ax.set_xlim(t_range[0]*1000, t_range[1]*1000)
+    ax.set_ylim(y_range)
+    
+    # Add minor ticks for grid
+    ax.minorticks_on()
+    ax.grid(which='major', color='#555', linestyle='-', linewidth=0.7)
+    ax.grid(which='minor', color='#333', linestyle=':', linewidth=0.4)
+    
+    # Legend
+    legend = ax.legend(loc='upper right', facecolor='#333', edgecolor='white', labelcolor='white')
+    
+    plt.tight_layout()
+    return fig
+
+# --- Main Content ---
+st.title("🔊 A.L. 2.2: Velocidade de Propagação do Som")
+
+if procedure == "1. Método do Impulso/Eco":
+    st.header("Procedimento I: Método do Impulso (Mangueira)")
+    
+    col1, col2 = st.columns([1, 2])
+    
+    with col1:
+        st.markdown("""
+        **Material:**
+        - Mangueira enrolada (comprimento $d = 15.0$ m)
+        - Microfone na extremidade
+        - Tampa metálica (fonte sonora)
+        - Osciloscópio
+        """)
+        
+        # Schematic for Procedure I
+        st.graphviz_chart("""
+        digraph G {
+            rankdir=LR;
+            node [shape=box, style=filled, fillcolor="#faebd7"];
+            Source [label="Fonte Sonora\n(Tampa Metálica)"];
+            Mic [label="Microfone"];
+            Osc [label="Osciloscópio", shape=component, fillcolor="#add8e6"];
+            
+            Source -> Mic [label="Som direto (t=0)", style=dashed];
+            Source -> Mic [label="Som pela mangueira (d=15m)", color="blue"];
+            Mic -> Osc [label="Sinal Elétrico"];
+        }
+        """)
+
+        st.markdown("""
+        **Instruções:**
+        1. Clique em 'Largar Tampa' para gerar o som.
+        2. O canal 1 (verde) mostra o som inicial (t=0).
+        3. O canal 2 (amarelo) mostra o som após percorrer a mangueira.
+        4. Meça a diferença de tempo $\Delta t$ entre os picos.
+        """)
+        
+        if 'animation_complete' not in st.session_state:
+            st.session_state.animation_complete = False
+            
+        with st.container(border=True):
+            st.subheader("🕹️ Realizar Experiência")
+            st.write("Clique no botão abaixo para simular o choque entre os blocos:")
+            
+            if st.button("🪵 Bater Blocos de Madeira", use_container_width=True):
+                st.session_state.animation_complete = False
+                st.session_state['triggered_p1'] = True
+                
+                # SVG Animation
+                animation_html = f"""
+                <div style="display: flex; justify-content: center; align-items: center; flex-direction: column; background-color: #f0f2f6; padding: 20px; border-radius: 10px; border: 1px solid #ddd;">
+                    <style>
+                        @keyframes clapLeft {{
+                            0% {{ transform: translateX(0); }}
+                            20% {{ transform: translateX(50px); }}
+                            25% {{ transform: translateX(50px); }}
+                            100% {{ transform: translateX(0); }}
+                        }}
+                        @keyframes clapRight {{
+                            0% {{ transform: translateX(0); }}
+                            20% {{ transform: translateX(-50px); }}
+                            25% {{ transform: translateX(-50px); }}
+                            100% {{ transform: translateX(0); }}
+                        }}
+                        @keyframes soundWave {{
+                            0% {{ opacity: 0; offset-distance: 0%; }}
+                            20% {{ opacity: 1; offset-distance: 0%; }}
+                            90% {{ opacity: 1; offset-distance: 100%; }}
+                            100% {{ opacity: 0; offset-distance: 100%; }}
+                        }}
+                        .block-left {{
+                            width: 60px; height: 100px; background: #8B4513; 
+                            position: absolute; left: 100px; top: 50px;
+                            animation: clapLeft 1s ease-in-out forwards;
+                            border: 2px solid #5D4037;
+                        }}
+                        .block-right {{
+                            width: 60px; height: 100px; background: #8B4513; 
+                            position: absolute; right: 100px; top: 50px;
+                            animation: clapRight 1s ease-in-out forwards;
+                            border: 2px solid #5D4037;
+                        }}
+                        .sound-pulse {{
+                            width: 15px; height: 15px; background: radial-gradient(circle, red, transparent);
+                            border-radius: 50%;
+                            position: absolute;
+                            offset-path: path('M 250 100 q 30 -30 60 0 t 60 0 t 60 0 t 60 0 t 60 0 t 60 0 q 30 30 0 60 t -60 0 t -60 0 t -60 0 t -60 0 t -60 0 t -60 0 q -30 -30 0 -60');
+                            /* Improved Spiral/Coil path approximation for visualization */
+                            offset-path: path('M 300 100 C 350 100 350 150 300 150 C 250 150 250 200 300 200 C 350 200 350 250 300 250 C 250 250 250 300 300 300 C 350 300 350 350 300 350');
+                            animation: soundWave 2.5s linear forwards;
+                            animation-delay: 0.2s; /* Wait for clap */
+                            opacity: 0;
+                        }}
+                        .hose-path {{
+                            fill: none; stroke: #2E8B57; stroke-width: 10; stroke-linecap: round; opacity: 0.8;
+                        }}
+                    </style>
+                    <div style="position: relative; width: 600px; height: 400px;">
+                        <!-- Blocks -->
+                        <div class="block-left" style="left: 150px; top: 20px;"></div>
+                        <div class="block-right" style="right: 150px; top: 20px;"></div>
+                        
+                        <!-- Hose Visualization -->
+                        <svg width="600" height="400" style="position: absolute; top: 0; left: 0; z-index: -1;">
+                            <text x="300" y="380" text-anchor="middle" fill="#333">Mangueira 15m (Enrolada)</text>
+                            <path class="hose-path" d="M 300 100 C 350 100 350 150 300 150 C 250 150 250 200 300 200 C 350 200 350 250 300 250 C 250 250 250 300 300 300 C 350 300 350 350 300 350" />
+                        </svg>
+                        
+                        <!-- Sound Pulse -->
+                        <div class="sound-pulse"></div>
+                    </div>
+                </div>
+                """
+                st.components.v1.html(animation_html, height=450)
+                
+                # Wait for animation to finish in Python (synchronization)
+                with st.spinner("Som a propagar-se..."):
+                    time.sleep(3.0) 
+                
+                st.session_state.animation_complete = True
+                st.session_state['measured_time_p1'] = (15.0 / v_theo) * np.random.normal(1.0, 0.005)
+                st.rerun()
+
+    
+    with col2:
+        if st.session_state.get('triggered_p1') and st.session_state.get('animation_complete'):
+            # Simulation parameters
+            total_time = 0.1  # 100 ms window
+            t = np.linspace(0, total_time, 2000)
+            
+            # Pulse 1 at t=0 (approx, slight delay for visibility)
+            t_pulse1 = 0.005
+            sig1 = generate_pulse(t, t_pulse1)
+            
+            # Pulse 2 at t = t_pulse1 + measured_time
+            dt = st.session_state['measured_time_p1']
+            t_pulse2 = t_pulse1 + dt
+            
+            # Attenuation for second pulse
+            sig2 = 0.6 * generate_pulse(t, t_pulse2) + 0.02 * np.random.normal(size=len(t)) # Add noise
+            sig1 += 0.02 * np.random.normal(size=len(t))
+            
+            st.subheader("Ecrã do Osciloscópio")
+            # Controls for Oscilloscope View
+            view_range_ms = st.slider("Base de Tempo (Janela de visualização em ms)", 10.0, 100.0, 60.0)
+            
+            fig = plot_oscilloscope(t, sig1, sig2, (0, view_range_ms/1000))
+            st.pyplot(fig)
+            
+            st.info(f"Dica: Cada divisão principal horizontal corresponde tipicamente a 1/10 da largura total, ou use a escala para calcular. O pico CH1 ocorre em ~5ms para visualização.")
+
+elif procedure == "2. Método do Desfasamento":
+    st.header("Procedimento II: Método do Desfasamento")
+    
+    col1, col2 = st.columns([1, 2])
+    
+    with col1:
+        st.markdown("""
+        **Material:**
+        - Gerador de Sinais e Altifalante
+        - Microfone móvel
+        - Régua/Calha ótica
+        """)
+        
+        # Schematic for Procedure II
+        st.graphviz_chart("""
+        digraph G {
+            rankdir=LR;
+            node [shape=box, style=filled, fillcolor="#faebd7"];
+            Gen [label="Gerador de Sinais\nFrequency f", fillcolor="#90ee90"];
+            Speaker [label="Altifalante"];
+            Mic [label="Microfone Móvel"];
+            Osc [label="Osciloscópio", shape=component, fillcolor="#add8e6"];
+            
+            Gen -> Speaker [dir=both];
+            Gen -> Osc [label="CH1 (Ref)"];
+            Speaker -> Mic [label="Som (distância d)", style=dotted];
+            Mic -> Osc [label="CH2 (Sinal)", color="orange"];
+        }
+        """)
+        
+        st.markdown("""
+        **Instruções:**
+        1. Defina a frequência do gerador.
+        2. Mova o microfone afastando-o do altifalante.
+        3. Observe o desfasamento entre o sinal da fonte (CH1) e do microfone (CH2).
+        4. Registre o tempo de atraso ou distância para picos coincidentes.
+        """)
+        
+        freq = st.slider("Frequência do Gerador (Hz)", 500, 3000, 1500, step=100)
+        dist = st.slider("Distância Microfone-Altifalante (m)", 0.0, 1.5, 0.0, step=0.01)
+        
+        wavelength = v_theo / freq
+        # Theoretical Delay
+        delay_theo = dist / v_theo
+        
+    with col2:
+        st.subheader("Montagem e Osciloscópio")
+        
+        # Simulation
+        t_window = 5 / freq # Show 5 periods approx
+        if t_window < 0.002: t_window = 0.002
+        
+        t = np.linspace(0, t_window, 1000)
+        omega = 2 * np.pi * freq
+        
+        # Signal 1: Source
+        sig1 = np.sin(omega * t)
+        
+        # Signal 2: Mic (Delayed by dist/v)
+        # Add noise
+        sig2 = 0.8 * np.sin(omega * (t - delay_theo)) + 0.05 * np.random.normal(size=len(t))
+        
+        fig = plot_oscilloscope(t, sig1, sig2, (0, t_window), y_range=(-1.5, 1.5))
+        st.pyplot(fig)
+        
+        st.metric("Atraso Calculado (Simulação)", f"{delay_theo*1000:.3f} ms")
+        st.markdown(r"Desfasamento de fase: $\Delta \phi = {(dist/wavelength * 360) % 360:.1f}^\circ$")
+
+elif procedure == "3. Análise de Dados":
+    st.header("Registo e Análise de Dados")
+    
+    tab1, tab2 = st.tabs(["Dados Procedimento I", "Dados Procedimento II"])
+    
+    with tab1:
+        st.subheader("Cálculo da Velocidade (Impulso)")
+        d_p1 = st.number_input("Distância percorrida (m)", value=15.0)
+        dt_p1_ms = st.number_input(r"Intervalo de tempo medido $\Delta t$ (ms)", value=0.0, step=0.1)
+        
+        if dt_p1_ms > 0:
+            v_exp_p1 = d_p1 / (dt_p1_ms / 1000.0)
+            st.success(f"Velocidade Experimental: **{v_exp_p1:.2f} m/s**")
+            
+            error_p1 = abs(v_exp_p1 - v_theo) / v_theo * 100
+            st.info(f"Erro Percentual (vs Teórico {v_theo:.2f} m/s): **{error_p1:.2f}%**")
+    
+    with tab2:
+        st.subheader("Tabela de Medições (Desfasamento)")
+        
+        if 'df_p2' not in st.session_state:
+            st.session_state.df_p2 = pd.DataFrame(columns=["Distância (m)", "Tempo atraso (ms)"])
+        
+        col_input1, col_input2, col_btn = st.columns(3)
+        with col_input1:
+            d_in = st.number_input("Distância d (m)", key="d_in")
+        with col_input2:
+            t_in = st.number_input("Tempo atraso (ms)", key="t_in")
+        with col_btn:
+            st.text("")
+            st.text("")
+            if st.button("Adicionar Ponto"):
+                new_row = pd.DataFrame({"Distância (m)": [d_in], "Tempo atraso (ms)": [t_in]})
+                st.session_state.df_p2 = pd.concat([st.session_state.df_p2, new_row], ignore_index=True)
+        
+        # Use data_editor to allow adding/editing rows directly
+        edited_df = st.data_editor(st.session_state.df_p2, num_rows="dynamic", key="data_editor_p2")
+        
+        # Update session state with edits (optional, but good for persistence across reruns if needed)
+        st.session_state.df_p2 = edited_df
+        
+        if not edited_df.empty and len(edited_df) > 1:
+            # Linear Regression
+            # Ensure data is numeric
+            try:
+                X = edited_df["Tempo atraso (ms)"].astype(float) / 1000.0 
+                y = edited_df["Distância (m)"].astype(float)
+                
+                # Simple linear fit y = v * x + b
+                coef = np.polyfit(X, y, 1) # [slope, intercept]
+                v_exp_p2 = coef[0]
+                
+                st.markdown(f"**Declive da reta (Velocidade):** {v_exp_p2:.2f} m/s")
+                
+                # Plot
+                fig_reg, ax_reg = plt.subplots(figsize=(6, 4))
+                ax_reg.scatter(X, y, color='red', label='Dados')
+                ax_reg.plot(X, coef[0]*X + coef[1], color='blue', label=f'Ajuste Linear ($v={v_exp_p2:.1f}$ m/s)')
+                ax_reg.set_xlabel("Tempo (s)")
+                ax_reg.set_ylabel("Distância (m)")
+                ax_reg.legend()
+                ax_reg.grid(True, linestyle='--', alpha=0.7)
+                st.pyplot(fig_reg)
+                
+                error_p2 = abs(v_exp_p2 - v_theo) / v_theo * 100
+                st.info(f"Erro Percentual: **{error_p2:.2f}%**")
+            except Exception as e:
+                st.warning(f"Insira dados numéricos válidos para calcular. Erro: {e}")
+
