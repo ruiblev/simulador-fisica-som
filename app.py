@@ -297,11 +297,79 @@ elif procedure == "2. Método do Desfasamento":
         delay_theo = dist / v_theo
         
     with col2:
-        st.subheader("Montagem e Osciloscópio")
+        st.subheader("Montagem Experimental")
         
-        # Simulation
-        t_window = 5 / freq # Show 5 periods approx
-        if t_window < 0.002: t_window = 0.002
+        # Calculate visual position (1.5m max range mapped to ~500px width)
+        # Scale: 0m -> 100px (start), 1.5m -> 550px
+        scale_factor = 300 # pixels per meter
+        mic_x_pos = 100 + (dist * scale_factor)
+        
+        # Interactive SVG for Procedure II
+        proc2_html = f"""
+        <div style="display: flex; justify-content: center; background-color: #f0f2f6; padding: 10px; border-radius: 10px; border: 1px solid #ddd;">
+            <style>
+                @keyframes speakerPulse {{
+                    0% {{ transform: scale(1); }}
+                    50% {{ transform: scale(1.05); }}
+                    100% {{ transform: scale(1); }}
+                }}
+                @keyframes waveMove {{
+                    0% {{ opacity: 0.8; transform: translateX(0) scale(0.5); }}
+                    100% {{ opacity: 0; transform: translateX(200px) scale(2); }}
+                }}
+                .speaker-icon {{
+                    fill: #333;
+                    animation: speakerPulse 1s infinite;
+                }}
+                .mic-icon {{
+                    fill: #d32f2f;
+                    transition: transform 0.2s ease-out;
+                }}
+                .wave {{
+                    fill: none; stroke: #888; stroke-width: 2;
+                    opacity: 0;
+                    transform-origin: 80px 75px;
+                    animation: waveMove 1s linear infinite;
+                }}
+            </style>
+            <svg width="600" height="150" style="overflow: visible;">
+                <!-- Ruler / Rail -->
+                <line x1="100" y1="120" x2="550" y2="120" stroke="#555" stroke-width="2" />
+                <text x="100" y="140" text-anchor="middle" font-size="12">0 m</text>
+                <text x="550" y="140" text-anchor="middle" font-size="12">1.5 m</text>
+                
+                <!-- Fixed Speaker (at x=80) -->
+                <g transform="translate(50, 50)">
+                    <!-- Box -->
+                    <rect x="0" y="0" width="40" height="50" fill="#444" rx="2" />
+                    <!-- Cone -->
+                    <path d="M 40 10 L 60 0 L 60 50 L 40 40 Z" fill="#666" />
+                    <!-- Sound Waves emitting -->
+                    <circle cx="60" cy="25" r="10" class="wave" style="animation-delay: 0s;" />
+                    <circle cx="60" cy="25" r="10" class="wave" style="animation-delay: 0.3s;" />
+                    <circle cx="60" cy="25" r="10" class="wave" style="animation-delay: 0.6s;" />
+                </g>
+                
+                <!-- Movable Microphone -->
+                <g transform="translate({mic_x_pos}, 60)">
+                    <!-- Stand -->
+                    <line x1="0" y1="0" x2="0" y2="60" stroke="#888" stroke-width="3" />
+                    <circle cx="0" cy="60" r="5" fill="#333" />
+                    <!-- Mic Head -->
+                    <g transform="rotate(-90)">
+                         <path d="M -10 -15 L 10 -15 L 10 5 L 5 10 L -5 10 L -10 5 Z" fill="#d32f2f" />
+                         <circle cx="0" cy="-15" r="10" fill="#a00" />
+                    </g>
+                    <!-- Label -->
+                    <text x="0" y="-35" text-anchor="middle" fill="#d32f2f" font-weight="bold" font-size="12">Mic</text>
+                    <text x="0" y="-50" text-anchor="middle" fill="#333" font-size="10">{dist:.2f} m</text>
+                </g>
+            </svg>
+        </div>
+        """
+        st.components.v1.html(proc2_html, height=180)
+        
+        st.subheader("Ecrã do Osciloscópio")
         
         t = np.linspace(0, t_window, 1000)
         omega = 2 * np.pi * freq
