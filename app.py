@@ -185,22 +185,22 @@ if procedure == "1. Método do Impulso/Eco":
                             opacity: 0;
                         }}
                         .hose-path {{
-                            fill: none; stroke: #2E8B57; stroke-width: 10; stroke-linecap: round; opacity: 0.8;
+                            fill: none; stroke: #32CD32; stroke-width: 14; stroke-linecap: round;
                         }}
                     </style>
                     <div style="position: relative; width: 600px; height: 400px;">
-                        <!-- Blocks -->
-                        <div class="block-left" style="left: 150px; top: 20px;"></div>
-                        <div class="block-right" style="right: 150px; top: 20px;"></div>
-                        
                         <!-- Hose Visualization -->
-                        <svg width="600" height="400" style="position: absolute; top: 0; left: 0; z-index: -1;">
-                            <text x="300" y="380" text-anchor="middle" fill="#333">Mangueira 15m (Enrolada)</text>
+                        <svg width="600" height="400" style="position: absolute; top: 0; left: 0; z-index: 1;">
+                            <text x="300" y="380" text-anchor="middle" fill="#333" font-weight="bold">Mangueira 15m (Enrolada)</text>
                             <path class="hose-path" d="M 300 100 C 350 100 350 150 300 150 C 250 150 250 200 300 200 C 350 200 350 250 300 250 C 250 250 250 300 300 300 C 350 300 350 350 300 350" />
                         </svg>
                         
+                        <!-- Blocks -->
+                        <div class="block-left" style="left: 150px; top: 20px; z-index: 10;"></div>
+                        <div class="block-right" style="right: 150px; top: 20px; z-index: 10;"></div>
+                        
                         <!-- Sound Pulse -->
-                        <div class="sound-pulse"></div>
+                        <div class="sound-pulse" style="z-index: 20;"></div>
                     </div>
                 </div>
                 """
