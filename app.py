@@ -157,50 +157,59 @@ if procedure == "1. Método do Impulso/Eco":
                         }}
                         @keyframes soundWave {{
                             0% {{ opacity: 0; offset-distance: 0%; }}
-                            20% {{ opacity: 1; offset-distance: 0%; }}
-                            90% {{ opacity: 1; offset-distance: 100%; }}
+                            5% {{ opacity: 1; offset-distance: 0%; }}
+                            95% {{ opacity: 1; offset-distance: 100%; }}
                             100% {{ opacity: 0; offset-distance: 100%; }}
                         }}
                         .block-left {{
                             width: 60px; height: 100px; background: #8B4513; 
-                            position: absolute; left: 100px; top: 50px;
+                            position: absolute; left: 100px; top: 20px;
                             animation: clapLeft 1s ease-in-out forwards;
                             border: 2px solid #5D4037;
+                            z-index: 10;
                         }}
                         .block-right {{
                             width: 60px; height: 100px; background: #8B4513; 
-                            position: absolute; right: 100px; top: 50px;
+                            position: absolute; right: 100px; top: 20px;
                             animation: clapRight 1s ease-in-out forwards;
                             border: 2px solid #5D4037;
+                            z-index: 10;
                         }}
                         .sound-pulse {{
-                            width: 15px; height: 15px; background: radial-gradient(circle, red, transparent);
+                            width: 18px; height: 18px; background: radial-gradient(circle, red, #800);
                             border-radius: 50%;
                             position: absolute;
-                            offset-path: path('M 250 100 q 30 -30 60 0 t 60 0 t 60 0 t 60 0 t 60 0 t 60 0 q 30 30 0 60 t -60 0 t -60 0 t -60 0 t -60 0 t -60 0 t -60 0 q -30 -30 0 -60');
-                            /* Improved Spiral/Coil path approximation for visualization */
-                            offset-path: path('M 300 100 C 350 100 350 150 300 150 C 250 150 250 200 300 200 C 350 200 350 250 300 250 C 250 250 250 300 300 300 C 350 300 350 350 300 350');
-                            animation: soundWave 2.5s linear forwards;
-                            animation-delay: 0.2s; /* Wait for clap */
+                            /* Multi-loop spiral path */
+                            offset-path: path('M 120 70 L 150 70 C 500 70 500 130 150 130 C 500 130 500 190 150 190 C 500 190 500 250 150 250 C 500 250 500 310 150 310 L 120 310');
+                            animation: soundWave 3s linear forwards;
+                            animation-delay: 0.2s;
                             opacity: 0;
+                            z-index: 20;
                         }}
                         .hose-path {{
-                            fill: none; stroke: #32CD32; stroke-width: 14; stroke-linecap: round;
+                            fill: none; stroke: #FFD700; stroke-width: 18; stroke-linecap: round;
+                            filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.3));
+                        }}
+                        .hose-bg {{
+                            fill: none; stroke: #B8860B; stroke-width: 22; stroke-linecap: round; opacity: 0.3;
                         }}
                     </style>
                     <div style="position: relative; width: 600px; height: 400px;">
                         <!-- Hose Visualization -->
                         <svg width="600" height="400" style="position: absolute; top: 0; left: 0; z-index: 1;">
                             <text x="300" y="380" text-anchor="middle" fill="#333" font-weight="bold">Mangueira 15m (Enrolada)</text>
-                            <path class="hose-path" d="M 300 100 C 350 100 350 150 300 150 C 250 150 250 200 300 200 C 350 200 350 250 300 250 C 250 250 250 300 300 300 C 350 300 350 350 300 350" />
+                            <!-- Shadow/Background for 3D effect -->
+                            <path class="hose-bg" d="M 120 70 L 150 70 C 500 70 500 130 150 130 C 500 130 500 190 150 190 C 500 190 500 250 150 250 C 500 250 500 310 150 310 L 120 310" />
+                            <!-- Main Yellow Hose -->
+                            <path class="hose-path" d="M 120 70 L 150 70 C 500 70 500 130 150 130 C 500 130 500 190 150 190 C 500 190 500 250 150 250 C 500 250 500 310 150 310 L 120 310" />
                         </svg>
                         
                         <!-- Blocks -->
-                        <div class="block-left" style="left: 150px; top: 20px; z-index: 10;"></div>
-                        <div class="block-right" style="right: 150px; top: 20px; z-index: 10;"></div>
+                        <div class="block-left"></div>
+                        <div class="block-right"></div>
                         
                         <!-- Sound Pulse -->
-                        <div class="sound-pulse" style="z-index: 20;"></div>
+                        <div class="sound-pulse"></div>
                     </div>
                 </div>
                 """
