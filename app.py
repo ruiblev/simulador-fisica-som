@@ -371,6 +371,10 @@ elif procedure == "2. Método do Desfasamento":
         
         st.subheader("Ecrã do Osciloscópio")
         
+        # Simulation
+        t_window = 5 / freq # Show 5 periods approx
+        if t_window < 0.002: t_window = 0.002
+        
         t = np.linspace(0, t_window, 1000)
         omega = 2 * np.pi * freq
         
