@@ -120,7 +120,7 @@ if procedure == "1. Método do Impulso/Eco":
         }
         """)
 
-        st.markdown("""
+        st.markdown(r"""
         **Instruções:**
         1. Clique em 'Largar Tampa' para gerar o som.
         2. O canal 1 (verde) mostra o som inicial (t=0).
@@ -389,7 +389,7 @@ elif procedure == "2. Método do Desfasamento":
         st.pyplot(fig)
         
         st.metric("Atraso Calculado (Simulação)", f"{delay_theo*1000:.3f} ms")
-        st.markdown(r"Desfasamento de fase: $\Delta \phi = {(dist/wavelength * 360) % 360:.1f}^\circ$")
+        st.markdown(rf"Desfasamento de fase: $\Delta \phi = {(dist/wavelength * 360) % 360:.1f}^\circ$")
 
 elif procedure == "3. Análise de Dados":
     st.header("Registo e Análise de Dados")
