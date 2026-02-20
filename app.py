@@ -145,14 +145,14 @@ if procedure == "1. Método do Impulso/Eco":
                     <style>
                         @keyframes clapLeft {{
                             0% {{ transform: translateX(0); }}
-                            20% {{ transform: translateX(50px); }}
-                            25% {{ transform: translateX(50px); }}
+                            20% {{ transform: translateX(140px); }}
+                            25% {{ transform: translateX(140px); }}
                             100% {{ transform: translateX(0); }}
                         }}
                         @keyframes clapRight {{
                             0% {{ transform: translateX(0); }}
-                            20% {{ transform: translateX(-50px); }}
-                            25% {{ transform: translateX(-50px); }}
+                            20% {{ transform: translateX(-140px); }}
+                            25% {{ transform: translateX(-140px); }}
                             100% {{ transform: translateX(0); }}
                         }}
                         @keyframes soundWave {{
@@ -167,6 +167,7 @@ if procedure == "1. Método do Impulso/Eco":
                             animation: clapLeft 1s ease-in-out forwards;
                             border: 2px solid #5D4037;
                             z-index: 10;
+                            box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
                         }}
                         .block-right {{
                             width: 60px; height: 100px; background: #8B4513; 
@@ -174,6 +175,7 @@ if procedure == "1. Método do Impulso/Eco":
                             animation: clapRight 1s ease-in-out forwards;
                             border: 2px solid #5D4037;
                             z-index: 10;
+                            box-shadow: -2px 2px 5px rgba(0,0,0,0.5);
                         }}
                         .sound-pulse {{
                             width: 18px; height: 18px; background: radial-gradient(circle, red, #800);
