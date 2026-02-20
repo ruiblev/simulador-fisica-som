@@ -480,69 +480,54 @@ elif procedure == "2. Método do Desfasamento":
 elif procedure == "3. Análise de Dados":
     st.header("Registo e Análise de Dados")
     
-    tab1, tab2 = st.tabs(["Dados Procedimento I", "Dados Procedimento II"])
+    st.subheader("Tabela de Medições (Desfasamento)")
     
-    with tab1:
-        st.subheader("Cálculo da Velocidade (Impulso)")
-        d_p1 = st.number_input("Distância percorrida (m)", value=15.0)
-        dt_p1_ms = st.number_input(r"Intervalo de tempo medido $\Delta t$ (ms)", value=0.0, step=0.1)
-        
-        if dt_p1_ms > 0:
-            v_exp_p1 = d_p1 / (dt_p1_ms / 1000.0)
-            st.success(f"Velocidade Experimental: **{v_exp_p1:.2f} m/s**")
+    if 'df_p2' not in st.session_state:
+        st.session_state.df_p2 = pd.DataFrame(columns=["Distância (m)", "Tempo atraso (ms)"])
+    
+    col_input1, col_input2, col_btn = st.columns(3)
+    with col_input1:
+        d_in = st.number_input("Distância d (m)", key="d_in")
+    with col_input2:
+        t_in = st.number_input("Tempo atraso (ms)", key="t_in")
+    with col_btn:
+        st.text("")
+        st.text("")
+        if st.button("Adicionar Ponto"):
+            new_row = pd.DataFrame({"Distância (m)": [d_in], "Tempo atraso (ms)": [t_in]})
+            st.session_state.df_p2 = pd.concat([st.session_state.df_p2, new_row], ignore_index=True)
+    
+    # Use data_editor to allow adding/editing rows directly
+    edited_df = st.data_editor(st.session_state.df_p2, num_rows="dynamic", key="data_editor_p2")
+    
+    # Update session state with edits (optional, but good for persistence across reruns if needed)
+    st.session_state.df_p2 = edited_df
+    
+    if not edited_df.empty and len(edited_df) > 1:
+        # Linear Regression
+        # Ensure data is numeric
+        try:
+            X = edited_df["Tempo atraso (ms)"].astype(float) / 1000.0 
+            y = edited_df["Distância (m)"].astype(float)
             
-            error_p1 = abs(v_exp_p1 - v_theo) / v_theo * 100
-            st.info(f"Erro Percentual (vs Teórico {v_theo:.2f} m/s): **{error_p1:.2f}%**")
-    
-    with tab2:
-        st.subheader("Tabela de Medições (Desfasamento)")
-        
-        if 'df_p2' not in st.session_state:
-            st.session_state.df_p2 = pd.DataFrame(columns=["Distância (m)", "Tempo atraso (ms)"])
-        
-        col_input1, col_input2, col_btn = st.columns(3)
-        with col_input1:
-            d_in = st.number_input("Distância d (m)", key="d_in")
-        with col_input2:
-            t_in = st.number_input("Tempo atraso (ms)", key="t_in")
-        with col_btn:
-            st.text("")
-            st.text("")
-            if st.button("Adicionar Ponto"):
-                new_row = pd.DataFrame({"Distância (m)": [d_in], "Tempo atraso (ms)": [t_in]})
-                st.session_state.df_p2 = pd.concat([st.session_state.df_p2, new_row], ignore_index=True)
-        
-        # Use data_editor to allow adding/editing rows directly
-        edited_df = st.data_editor(st.session_state.df_p2, num_rows="dynamic", key="data_editor_p2")
-        
-        # Update session state with edits (optional, but good for persistence across reruns if needed)
-        st.session_state.df_p2 = edited_df
-        
-        if not edited_df.empty and len(edited_df) > 1:
-            # Linear Regression
-            # Ensure data is numeric
-            try:
-                X = edited_df["Tempo atraso (ms)"].astype(float) / 1000.0 
-                y = edited_df["Distância (m)"].astype(float)
-                
-                # Simple linear fit y = v * x + b
-                coef = np.polyfit(X, y, 1) # [slope, intercept]
-                v_exp_p2 = coef[0]
-                
-                st.markdown(f"**Declive da reta (Velocidade):** {v_exp_p2:.2f} m/s")
-                
-                # Plot
-                fig_reg, ax_reg = plt.subplots(figsize=(6, 4))
-                ax_reg.scatter(X, y, color='red', label='Dados')
-                ax_reg.plot(X, coef[0]*X + coef[1], color='blue', label=f'Ajuste Linear ($v={v_exp_p2:.1f}$ m/s)')
-                ax_reg.set_xlabel("Tempo (s)")
-                ax_reg.set_ylabel("Distância (m)")
-                ax_reg.legend()
-                ax_reg.grid(True, linestyle='--', alpha=0.7)
-                st.pyplot(fig_reg)
-                
-                error_p2 = abs(v_exp_p2 - v_theo) / v_theo * 100
-                st.info(f"Erro Percentual: **{error_p2:.2f}%**")
-            except Exception as e:
-                st.warning(f"Insira dados numéricos válidos para calcular. Erro: {e}")
+            # Simple linear fit y = v * x + b
+            coef = np.polyfit(X, y, 1) # [slope, intercept]
+            v_exp_p2 = coef[0]
+            
+            st.markdown(f"**Declive da reta (Velocidade):** {v_exp_p2:.2f} m/s")
+            
+            # Plot
+            fig_reg, ax_reg = plt.subplots(figsize=(6, 4))
+            ax_reg.scatter(X, y, color='red', label='Dados')
+            ax_reg.plot(X, coef[0]*X + coef[1], color='blue', label=f'Ajuste Linear ($v={v_exp_p2:.1f}$ m/s)')
+            ax_reg.set_xlabel("Tempo (s)")
+            ax_reg.set_ylabel("Distância (m)")
+            ax_reg.legend()
+            ax_reg.grid(True, linestyle='--', alpha=0.7)
+            st.pyplot(fig_reg)
+            
+            error_p2 = abs(v_exp_p2 - v_theo) / v_theo * 100
+            st.info(f"Erro Percentual: **{error_p2:.2f}%**")
+        except Exception as e:
+            st.warning(f"Insira dados numéricos válidos para calcular. Erro: {e}")
 
