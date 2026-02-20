@@ -101,7 +101,7 @@ if procedure == "1. Método do Impulso/Eco":
         **Material:**
         - Mangueira enrolada (comprimento $d = 15.0$ m)
         - Microfone na extremidade
-        - Tampa metálica (fonte sonora)
+        - Blocos de madeira (fonte sonora)
         - Osciloscópio
         """)
         
@@ -110,7 +110,7 @@ if procedure == "1. Método do Impulso/Eco":
         digraph G {
             rankdir=LR;
             node [shape=box, style=filled, fillcolor="#faebd7"];
-            Source [label="Fonte Sonora\n(Tampa Metálica)"];
+            Source [label="Fonte Sonora\n(Blocos de Madeira)", fillcolor="#deb887"];
             Mic [label="Microfone"];
             Osc [label="Osciloscópio", shape=component, fillcolor="#add8e6"];
             
@@ -122,7 +122,7 @@ if procedure == "1. Método do Impulso/Eco":
 
         st.markdown(r"""
         **Instruções:**
-        1. Clique em 'Largar Tampa' para gerar o som.
+        1. Clique em 'Bater Blocos' para gerar o som.
         2. O canal 1 (verde) mostra o som inicial (t=0).
         3. O canal 2 (amarelo) mostra o som após percorrer a mangueira.
         4. Meça a diferença de tempo $\Delta t$ entre os picos.
