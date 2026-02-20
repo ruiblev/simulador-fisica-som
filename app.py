@@ -43,7 +43,7 @@ st.markdown("""
 with st.sidebar:
     st.image("https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Oscilloscope_sine_square.jpg/640px-Oscilloscope_sine_square.jpg", use_column_width=True, caption="Osciloscópio")
     st.header("Configuração Ambiental")
-    temperature = st.number_input(r"Temperatura do Ar ($^\circ$C)", min_value=0.0, max_value=40.0, value=20.0, step=0.1)
+    temperature = st.number_input(r"Temperatura do Ar ($^\circ$C)", min_value=-20.0, max_value=40.0, value=20.0, step=0.1)
     
     # Theoretical Calculation
     # v = 331.29 + 0.61 * T
