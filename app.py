@@ -48,7 +48,7 @@ with st.sidebar:
     # Theoretical Calculation
     # v = 331.29 + 0.61 * T
     v_theo = 331.29 + 0.61 * temperature
-    st.metric(label="Velocidade Teórica do Som", value=f"{v_theo:.2f} m/s")
+    # st.metric(label="Velocidade Teórica do Som", value=f"{v_theo:.2f} m/s") # Hidden for student challenge
     
     st.markdown("---")
     st.header("Navegação")
@@ -302,14 +302,40 @@ font-family: sans-serif;
             st.write(r"Meça a diferença de tempo $\Delta t$ entre o pico do sinal do emissor (verde) e o respetivo pico do sinal do recetor (amarelo) usando a grelha do ecrã do osciloscópio.")
             user_dt = st.number_input(r"Introduza o valor de $\Delta t$ medido (em ms):", min_value=0.0, max_value=200.0, value=0.0, step=0.1)
             
-            if st.button("Verificar"):
-                actual_dt_ms = st.session_state['measured_time_p1'] * 1000
+            # Use the actual generated time from the simulation for validation
+            actual_dt_ms = st.session_state['measured_time_p1'] * 1000
+            
+            if st.button("Verificar Tempo"):
                 margin_of_error = 2.0 # Allow +/- 2 ms tolerance
                 
                 if abs(user_dt - actual_dt_ms) <= margin_of_error:
-                    st.success(f"Correto! O tempo real de propagação foi de **{actual_dt_ms:.1f} ms**.")
+                    st.success(f"Tempo Correto! O tempo de propagação aproximado é de **{actual_dt_ms:.1f} ms**.")
                 else:
-                    st.error("Incorreto. Verifique a leitura na grelha do osciloscópio. Dica: conte o número de divisões entre os dois picos e multiplique pelo valor de cada divisão (Base de Tempo / 10).")
+                    st.error("Tempo Incorreto. Verifique a leitura na grelha do osciloscópio. Dica: conte o número de divisões entre os dois picos e multiplique pelo valor de cada divisão (Base de Tempo / 10).")
+
+            st.markdown("---")
+            st.write(r"Com base no tempo medido ($\Delta t$) e na distância percorrida pelo som ao longo da mangueira ($d = 15.0$ m), calcule a velocidade de propagação do som.")
+            user_v = st.number_input(r"Introduza o valor da velocidade calculada ($v$) em m/s:", min_value=0.0, max_value=1000.0, value=0.0, step=0.1)
+            
+            if st.button("Verificar Velocidade"):
+                # Avoid division by zero
+                if user_dt <= 0:
+                    st.warning(r"Tem de ter um tempo $\Delta t$ válido (>0) na sua medição primeiro.")
+                else:
+                    # Calculate what the student should have gotten based on THEIR input
+                    expected_v_based_on_user_dt = 15.0 / (user_dt / 1000.0)
+                    
+                    # Round both to 2 decimal places to compare (this checks 2 significant figures precision loosely as requested, or rather 2 decimal precision)
+                    # We accept a small margin of error (e.g. 1.0 m/s) to cover rounding differences in intermediate steps
+                    if abs(user_v - expected_v_based_on_user_dt) <= 1.0:
+                        st.success(f"Velocidade Correta! Com o tempo de {user_dt} ms, a velocidade é de aproximadamente **{expected_v_based_on_user_dt:.1f} m/s**.")
+                        
+                        # Show bonus feedback on how close they are to theoretical
+                        if abs(user_v - v_theo) <= 10.0:
+                             st.balloons()
+                             st.info(f"O seu valor experimental está muito próximo do valor teórico esperado para a temperatura atual ({v_theo:.1f} m/s)!")
+                    else:
+                        st.error(f"Velocidade Incorreta. Reveja os seus cálculos. Lembre-se que $v = \\frac{{d}}{{\\Delta t}}$ e que o tempo tem de estar em segundos.")
 
 elif procedure == "2. Método do Desfasamento":
     st.header("Procedimento II: Método do Desfasamento")
