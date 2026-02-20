@@ -227,7 +227,7 @@ font-family: sans-serif;
 }}
 .instruction-text {{
     position: absolute;
-    bottom: 70px;
+    bottom: 40px;
     color: #333;
     font-weight: 800;
     font-size: 1.5rem;
@@ -236,7 +236,7 @@ font-family: sans-serif;
 }}
 .close-hint {{
     position: absolute;
-    bottom: 40px;
+    bottom: 15px;
     color: #666;
     font-size: 0.9rem;
     font-style: italic;
