@@ -295,7 +295,7 @@ font-family: sans-serif;
             fig = plot_oscilloscope(t, sig1, sig2, (0, view_range_ms/1000))
             st.pyplot(fig)
             
-            st.info(f"Dica: Cada divisão principal horizontal corresponde tipicamente a 1/10 da largura total, ou use a base de tempo. O pico verde ocorre em ~5ms.")
+            st.info(f"Dica: Cada divisão principal horizontal corresponde tipicamente a 1/10 da largura total, ou use a base de tempo.")
             
             st.markdown("---")
             st.subheader("Verificação da Medição")
