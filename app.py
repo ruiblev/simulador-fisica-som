@@ -79,8 +79,8 @@ def plot_oscilloscope(time, ch1, ch2, t_range, y_range=(-1, 1), trigger_level=0.
     
     # Add minor ticks for grid
     ax.minorticks_on()
-    ax.grid(which='major', color='#555', linestyle='-', linewidth=0.7)
-    ax.grid(which='minor', color='#333', linestyle=':', linewidth=0.4)
+    ax.grid(which='major', color='#888888', linestyle='-', linewidth=1.0) # Brighter, thicker major grid
+    ax.grid(which='minor', color='#444444', linestyle=':', linewidth=0.6) # Brighter minor grid
     
     # Legend
     legend = ax.legend(loc='upper right', facecolor='#333', edgecolor='white', labelcolor='white')
@@ -295,7 +295,21 @@ font-family: sans-serif;
             fig = plot_oscilloscope(t, sig1, sig2, (0, view_range_ms/1000))
             st.pyplot(fig)
             
-            st.info(f"Dica: Cada divisão principal horizontal corresponde tipicamente a 1/10 da largura total, ou use a escala para calcular. O pico CH1 ocorre em ~5ms para visualização.")
+            st.info(f"Dica: Cada divisão principal horizontal corresponde tipicamente a 1/10 da largura total, ou use a base de tempo. O pico verde ocorre em ~5ms.")
+            
+            st.markdown("---")
+            st.subheader("Verificação da Medição")
+            st.write(r"Meça a diferença de tempo $\Delta t$ entre o pico do sinal do emissor (verde) e o respetivo pico do sinal do recetor (amarelo) usando a grelha do ecrã do osciloscópio.")
+            user_dt = st.number_input(r"Introduza o valor de $\Delta t$ medido (em ms):", min_value=0.0, max_value=200.0, value=0.0, step=0.1)
+            
+            if st.button("Verificar"):
+                actual_dt_ms = st.session_state['measured_time_p1'] * 1000
+                margin_of_error = 2.0 # Allow +/- 2 ms tolerance
+                
+                if abs(user_dt - actual_dt_ms) <= margin_of_error:
+                    st.success(f"Correto! O tempo real de propagação foi de **{actual_dt_ms:.1f} ms**.")
+                else:
+                    st.error("Incorreto. Verifique a leitura na grelha do osciloscópio. Dica: conte o número de divisões entre os dois picos e multiplique pelo valor de cada divisão (Base de Tempo / 10).")
 
 elif procedure == "2. Método do Desfasamento":
     st.header("Procedimento II: Método do Desfasamento")
