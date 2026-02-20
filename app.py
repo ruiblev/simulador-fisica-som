@@ -226,7 +226,8 @@ font-family: sans-serif;
     fill: none; stroke: #B8860B; stroke-width: 28; stroke-linecap: round; opacity: 0.25;
 }}
 .instruction-text {{
-    margin-top: 300px;
+    position: absolute;
+    bottom: 70px;
     color: #333;
     font-weight: 800;
     font-size: 1.5rem;
@@ -234,7 +235,8 @@ font-family: sans-serif;
     text-transform: uppercase;
 }}
 .close-hint {{
-    margin-top: 10px;
+    position: absolute;
+    bottom: 40px;
     color: #666;
     font-size: 0.9rem;
     font-style: italic;
