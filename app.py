@@ -139,83 +139,125 @@ if procedure == "1. Método do Impulso/Eco":
                 st.session_state.animation_complete = False
                 st.session_state['triggered_p1'] = True
                 
-                # SVG Animation
-                animation_html = f"""
-                <div style="display: flex; justify-content: center; align-items: center; flex-direction: column; background-color: #f0f2f6; padding: 20px; border-radius: 10px; border: 1px solid #ddd;">
-                    <style>
-                        @keyframes clapLeft {{
-                            0% {{ transform: translateX(0); }}
-                            20% {{ transform: translateX(140px); }}
-                            25% {{ transform: translateX(140px); }}
-                            100% {{ transform: translateX(0); }}
-                        }}
-                        @keyframes clapRight {{
-                            0% {{ transform: translateX(0); }}
-                            20% {{ transform: translateX(-140px); }}
-                            25% {{ transform: translateX(-140px); }}
-                            100% {{ transform: translateX(0); }}
-                        }}
-                        @keyframes soundWave {{
-                            0% {{ opacity: 0; offset-distance: 0%; }}
-                            5% {{ opacity: 1; offset-distance: 0%; }}
-                            95% {{ opacity: 1; offset-distance: 100%; }}
-                            100% {{ opacity: 0; offset-distance: 100%; }}
-                        }}
-                        .block-left {{
-                            width: 60px; height: 100px; background: #8B4513; 
-                            position: absolute; left: 100px; top: 20px;
-                            animation: clapLeft 1s ease-in-out forwards;
-                            border: 2px solid #5D4037;
-                            z-index: 10;
-                            box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
-                        }}
-                        .block-right {{
-                            width: 60px; height: 100px; background: #8B4513; 
-                            position: absolute; right: 100px; top: 20px;
-                            animation: clapRight 1s ease-in-out forwards;
-                            border: 2px solid #5D4037;
-                            z-index: 10;
-                            box-shadow: -2px 2px 5px rgba(0,0,0,0.5);
-                        }}
-                        .sound-pulse {{
-                            width: 18px; height: 18px; background: radial-gradient(circle, red, #800);
-                            border-radius: 50%;
-                            position: absolute;
-                            /* Multi-loop spiral path */
-                            offset-path: path('M 120 70 L 150 70 C 500 70 500 130 150 130 C 500 130 500 190 150 190 C 500 190 500 250 150 250 C 500 250 500 310 150 310 L 120 310');
-                            animation: soundWave 3s linear forwards;
-                            animation-delay: 0.2s;
-                            opacity: 0;
-                            z-index: 20;
-                        }}
-                        .hose-path {{
-                            fill: none; stroke: #FFD700; stroke-width: 18; stroke-linecap: round;
-                            filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.3));
-                        }}
-                        .hose-bg {{
-                            fill: none; stroke: #B8860B; stroke-width: 22; stroke-linecap: round; opacity: 0.3;
-                        }}
-                    </style>
-                    <div style="position: relative; width: 600px; height: 400px;">
-                        <!-- Hose Visualization -->
-                        <svg width="600" height="400" style="position: absolute; top: 0; left: 0; z-index: 1;">
-                            <text x="300" y="380" text-anchor="middle" fill="#333" font-weight="bold">Mangueira 15m (Enrolada)</text>
-                            <!-- Shadow/Background for 3D effect -->
-                            <path class="hose-bg" d="M 120 70 L 150 70 C 500 70 500 130 150 130 C 500 130 500 190 150 190 C 500 190 500 250 150 250 C 500 250 500 310 150 310 L 120 310" />
-                            <!-- Main Yellow Hose -->
-                            <path class="hose-path" d="M 120 70 L 150 70 C 500 70 500 130 150 130 C 500 130 500 190 150 190 C 500 190 500 250 150 250 C 500 250 500 310 150 310 L 120 310" />
-                        </svg>
-                        
-                        <!-- Blocks -->
-                        <div class="block-left"></div>
-                        <div class="block-right"></div>
-                        
-                        <!-- Sound Pulse -->
-                        <div class="sound-pulse"></div>
-                    </div>
-                </div>
-                """
-                st.components.v1.html(animation_html, height=450)
+                # SVG Animation with Full-Screen Overlay style (using st.markdown to escape iframe limits)
+                animation_html = f"""<div id="sound-animation-overlay" style="
+position: fixed;
+top: 0;
+left: 0;
+width: 100vw;
+height: 100vh;
+background-color: rgba(0, 0, 0, 0.75);
+display: flex;
+justify-content: center;
+align-items: center;
+z-index: 10000;
+backdrop-filter: blur(8px);
+animation: fadeIn 0.4s ease-out forwards;
+font-family: sans-serif;
+">
+<style>
+@keyframes fadeIn {{ from {{ opacity: 0; }} to {{ opacity: 1; }} }}
+@keyframes clapLeft {{
+    0% {{ transform: translateX(0); }}
+    20% {{ transform: translateX(120px); }} /* exact fit: 300(center) - 120(start) - 80(width)*/
+    25% {{ transform: translateX(120px); }}
+    100% {{ transform: translateX(0); }}
+}}
+@keyframes clapRight {{
+    0% {{ transform: translateX(0); }}
+    20% {{ transform: translateX(-120px); }} /* exact fit */
+    25% {{ transform: translateX(-120px); }}
+    100% {{ transform: translateX(0); }}
+}}
+@keyframes soundWave {{
+    0% {{ opacity: 0; offset-distance: 0%; }}
+    5% {{ opacity: 1; offset-distance: 0%; }}
+    95% {{ opacity: 1; offset-distance: 100%; }}
+    100% {{ opacity: 0; offset-distance: 100%; }}
+}}
+.modal-content {{
+    background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+    padding: 40px;
+    border-radius: 24px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    position: relative;
+    width: 750px;
+    height: 550px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid #ff4b4b;
+}}
+.block-left {{
+    width: 60px; height: 120px; background: linear-gradient(135deg, #a67c52 0%, #8b4513 100%); 
+    position: absolute; left: 120px; top: 100px;
+    animation: clapLeft 1s ease-in-out forwards;
+    border: 2px solid #5D4037;
+    z-index: 10;
+    box-shadow: 5px 10px 20px rgba(0,0,0,0.4);
+    border-radius: 6px;
+}}
+.block-right {{
+    width: 60px; height: 120px; background: linear-gradient(135deg, #a67c52 0%, #8b4513 100%); 
+    position: absolute; right: 120px; top: 100px;
+    animation: clapRight 1s ease-in-out forwards;
+    border: 2px solid #5D4037;
+    z-index: 10;
+    box-shadow: -5px 10px 20px rgba(0,0,0,0.4);
+    border-radius: 6px;
+}}
+.sound-pulse {{
+    width: 24px; height: 24px; background: radial-gradient(circle, #ff4b4b, #b30000);
+    border-radius: 50%;
+    position: absolute;
+    offset-path: path('M 150 160 L 180 160 C 550 160 550 220 200 220 C 550 220 550 280 200 280 C 550 280 550 340 200 340 C 550 340 550 400 200 400 L 150 400');
+    animation: soundWave 3s linear forwards;
+    animation-delay: 0.2s;
+    opacity: 0;
+    z-index: 20;
+    box-shadow: 0 0 15px #ff4b4b;
+}}
+.hose-path {{
+    fill: none; stroke: #FFD700; stroke-width: 22; stroke-linecap: round;
+    filter: drop-shadow(4px 4px 6px rgba(0,0,0,0.4));
+}}
+.hose-bg {{
+    fill: none; stroke: #B8860B; stroke-width: 28; stroke-linecap: round; opacity: 0.25;
+}}
+.instruction-text {{
+    margin-top: 300px;
+    color: #333;
+    font-weight: 800;
+    font-size: 1.5rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}}
+.close-hint {{
+    margin-top: 10px;
+    color: #666;
+    font-size: 0.9rem;
+    font-style: italic;
+}}
+</style>
+<div class="modal-content">
+    <div style="position: absolute; top: 50px; width: 600px; height: 400px;">
+        <svg width="600" height="400" style="position: absolute; top: 0; left: 0; z-index: 1;">
+            <text x="300" y="20" text-anchor="middle" fill="#555" font-weight="bold" font-size="14">MÉTODO DO IMPULSO (MANGUEIRA 15M)</text>
+            <path class="hose-bg" d="M 150 160 L 180 160 C 550 160 550 220 200 220 C 550 220 550 280 200 280 C 550 280 550 340 200 340 C 550 340 550 400 200 400 L 150 400" />
+            <path class="hose-path" d="M 150 160 L 180 160 C 550 160 550 220 200 220 C 550 220 550 280 200 280 C 550 280 550 340 200 340 C 550 340 550 400 200 400 L 150 400" />
+        </svg>
+        <div class="block-left"></div>
+        <div class="block-right"></div>
+        <div class="sound-pulse"></div>
+    </div>
+    <div class="instruction-text">A propagar som...</div>
+    <div class="close-hint">(A aguardar conclusão da experiência)</div>
+</div>
+</div>"""
+                st.markdown(animation_html, unsafe_allow_html=True)
+
+
                 
                 # Wait for animation to finish in Python (synchronization)
                 with st.spinner("Som a propagar-se..."):
