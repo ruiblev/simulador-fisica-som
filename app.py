@@ -306,7 +306,7 @@ font-family: sans-serif;
             actual_dt_ms = st.session_state['measured_time_p1'] * 1000
             
             if st.button("Verificar Tempo"):
-                margin_of_error = 2.0 # Allow +/- 2 ms tolerance
+                margin_of_error = 0.5 # Allow +/- 0.5 ms tolerance
                 
                 if abs(user_dt - actual_dt_ms) <= margin_of_error:
                     st.success(f"Tempo Correto! O tempo de propagação aproximado é de **{actual_dt_ms:.1f} ms**.")
